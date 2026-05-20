@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/app_constants.dart';
 import '../error/failures.dart';
+import '../storage/local_storage.dart';
 import '../utils/logger.dart';
 
-// Provider so any class can access ApiService
+// Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
   return ApiService();
 });
@@ -16,24 +17,26 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 class ApiService {
   late final Dio _dio;
   late final Dio _refreshDio;
-
-  // Token storage - will connect to local storage later
-  String? _token;
+  final LocalStorage _storage = LocalStorage();
 
   ApiService() {
     _dio = _buildDio();
     _refreshDio = _buildDio();
   }
 
+  // ─────────────────────────────────────────────
+  // DIO SETUP
+  // ─────────────────────────────────────────────
+
   Dio _buildDio() {
-    final String baseUrl = dotenv.env['BASE_URL'] ?? '';
+    final String baseUrl = AppConstants.baseUrl;
     final String normalizedBase = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
     return Dio(
       BaseOptions(
         baseUrl: normalizedBase,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: Duration(seconds: AppConstants.connectTimeout),
+        receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
         validateStatus: (_) => true,
       ),
     );
@@ -43,13 +46,9 @@ class ApiService {
   // TOKEN MANAGEMENT
   // ─────────────────────────────────────────────
 
-  void setToken(String? token) {
-    _token = token;
-  }
+  String? getToken() => _storage.getToken();
 
-  String? getToken() {
-    return _token;
-  }
+  void setToken(String token) => _storage.saveToken(token);
 
   // ─────────────────────────────────────────────
   // HEADERS
@@ -60,7 +59,7 @@ class ApiService {
 
     return <String, String>{
       'Accept': 'application/json',
-      'Authorization': 'Bearer ${_token ?? ''}',
+      'Authorization': 'Bearer ${getToken() ?? ''}',
       'X-Platform': platform,
       if (isJson) 'Content-Type': 'application/json',
     };
@@ -138,7 +137,8 @@ class ApiService {
 
   Future<bool> _doRefresh() async {
     try {
-      if (_token == null || _token!.isEmpty) {
+      final currentToken = getToken();
+      if (currentToken == null || currentToken.isEmpty) {
         return false;
       }
 
@@ -147,7 +147,7 @@ class ApiService {
         options: Options(
           headers: <String, String>{
             'Accept': 'application/json',
-            'Authorization': 'Bearer $_token',
+            'Authorization': 'Bearer $currentToken',
             'Content-Type': 'application/json',
           },
         ),
@@ -161,7 +161,7 @@ class ApiService {
                 : null;
 
         if (newToken != null && newToken.isNotEmpty) {
-          _token = newToken;
+          setToken(newToken);
           appLogger.i('TOKEN REFRESH: Success');
           return true;
         }
