@@ -6,7 +6,7 @@ class AppConstants {
   // Environment
   static String get appEnv => dotenv.env['APP_ENV'] ?? 'staging';
 
-  // Base URL - automatically picks the right one
+  // Base URL
   static String get baseUrl {
     if (appEnv == 'production') {
       return dotenv.env['PRODUCTION_URL'] ?? '';
@@ -16,9 +16,12 @@ class AppConstants {
 
   // Storage Keys
   static const String tokenKey = 'auth_token';
-  static const String userKey = 'user_data';
+  static const String authResponseKey = 'auth_response';
+  static const String userKey = 'user';
+  static const String authStatusKey = 'auth';
+  static const String selectedOrgIdKey = 'selected_organization_id';
 
   // Timeouts
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
+  static const int connectTimeout = 30;
+  static const int receiveTimeout = 30;
 }
