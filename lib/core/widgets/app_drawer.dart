@@ -52,13 +52,13 @@ class AppDrawer extends ConsumerWidget {
             _buildMenuItem(
               size: size,
               icon: Icons.play_circle_fill_rounded,
-              label: 'Active Program',
+              label: 'My Quest',
               onTap: () {},
             ),
             _buildMenuItem(
               size: size,
               icon: Icons.add_circle,
-              label: 'Browse Program',
+              label: 'Browse Quests',
               onTap: () {},
             ),
             _buildMenuItem(
