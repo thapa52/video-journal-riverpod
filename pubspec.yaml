@@ -1,5 +1,5 @@
-name: video_journal
-description: "A Flutter video journal app using Riverpod and Clean Architecture."
+name: progressify
+description: "A Flutter progressify app using Riverpod and Clean Architecture."
 publish_to: 'none'
 version: 1.0.0+1
 
